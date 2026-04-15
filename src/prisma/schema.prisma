@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum LessonStatus {
+  LOCKED
+  AVAILABLE
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum League {
+  BRONZE
+  SILVER
+  GOLD
+  DIAMOND
+  MASTER
+}
+
+model User {
+  id              String   @id @default(uuid())
+  email           String   @unique
+  username        String   @unique
+  passwordHash    String?
+  authProvider    String   @default("email") // "email" or "google"
+  googleId        String?  @unique
+  avatarUrl       String?
+  xp              Int      @default(0)
+  level           Int      @default(1)
+  hearts          Int      @default(5)
+  heartsUpdatedAt DateTime @default(now())
+  streak          Int      @default(0)
+  bestStreak      Int      @default(0)
+  lastActiveDate  DateTime?
+  streakFreezes   Int      @default(1)
+  league          League   @default(BRONZE)
+  weeklyXp        Int      @default(0)
+  dailyGoal       Int      @default(3)
+  skillLevel      String   @default("beginner")
+  // Onboarding
+  experienceLevel String?
+  buildGoals      String? // JSON array
+  // Subscription
+  trialStartDate       DateTime? @default(now())
+  subscriptionStatus   String    @default("trial")
+  subscriptionExpiresAt DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  lessonProgress  UserLessonProgress[]
+  badges          UserBadge[]
+  projects        UserProject[]
+}
+
+model Module {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String
+  icon        String
+  color       String
+  order       Int       @unique
+  lessons     Lesson[]
+  projects    Project[]
+}
+
+model Lesson {
+  id               String     @id @default(uuid())
+  title            String
+  slug             String     @unique
+  moduleId         String
+  module           Module     @relation(fields: [moduleId], references: [id])
+  order            Int
+  difficulty       Difficulty @default(BEGINNER)
+  estimatedMinutes Int        @default(5)
+  // Content stored as JSON
+  concept          Json       // { story, keyPoints[], visual, realWorldExample, eli10 }
+  demo             Json?      // { tool, steps[] } — nullable for non-demo lessons
+  quiz             Json       // [{ type, question, options, correct, explanation }]
+  challenge        Json?      // { type, description, criteria[], xpBonus }
+  createdAt        DateTime   @default(now())
+
+  progress         UserLessonProgress[]
+
+  @@unique([moduleId, order])
+}
+
+model UserLessonProgress {
+  id          String       @id @default(uuid())
+  userId      String
+  lessonId    String
+  status      LessonStatus @default(LOCKED)
+  stage       Int          @default(0) // 0=not started, 1=concept, 2=demo, 3=quiz, 4=challenge
+  score       Int          @default(0)
+  completedAt DateTime?
+
+  user        User   @relation(fields: [userId], references: [id])
+  lesson      Lesson @relation(fields: [lessonId], references: [id])
+
+  @@unique([userId, lessonId])
+}
+
+model Project {
+  id          String @id @default(uuid())
+  name        String
+  description String
+  criteria    Json   // [{ label, description }]
+  moduleId    String
+  module      Module @relation(fields: [moduleId], references: [id])
+  xpReward    Int    @default(50)
+  order       Int
+
+  userProjects UserProject[]
+}
+
+model UserProject {
+  id           String    @id @default(uuid())
+  userId       String
+  projectId    String
+  status       String    @default("not_started") // not_started, in_progress, submitted, completed
+  submittedUrl String?
+  completedAt  DateTime?
+
+  user         User    @relation(fields: [userId], references: [id])
+  project      Project @relation(fields: [projectId], references: [id])
+
+  @@unique([userId, projectId])
+}
+
+model Badge {
+  id          String @id @default(uuid())
+  name        String @unique
+  description String
+  icon        String
+  criteria    Json   // { type, count } or { type, moduleSlug }
+  category    String @default("milestone") // milestone, skill, project
+
+  users       UserBadge[]
+}
+
+model UserBadge {
+  id         String   @id @default(uuid())
+  userId     String
+  badgeId    String
+  unlockedAt DateTime @default(now())
+
+  user       User  @relation(fields: [userId], references: [id])
+  badge      Badge @relation(fields: [badgeId], references: [id])
+
+  @@unique([userId, badgeId])
+}
+
+model GlossaryTerm {
+  id           String @id @default(uuid())
+  term         String @unique
+  definition   String
+  eli10        String // Explain Like I'm 10
+  category     String // tech, security, deployment, etc.
+  relatedTerms Json   // ["api", "backend"]
+}
+
+model DailyChallenge {
+  id        String   @id @default(uuid())
+  date      DateTime @unique @db.Date
+  title     String
+  prompt    String   // The prompt challenge description
+  category  String   // prompt-engineering, security, design, etc.
+}
