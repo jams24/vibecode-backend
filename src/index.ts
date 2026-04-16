@@ -11,6 +11,7 @@ import dailyRoutes from './routes/daily';
 import gamificationRoutes from './routes/gamification';
 import playgroundRoutes from './routes/playground';
 import legalRoutes from './routes/legal';
+import adminRoutes from './routes/admin';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use('/api/glossary', glossaryRoutes);
 app.use('/api/daily', dailyRoutes);
 app.use('/api/gamification', gamificationRoutes);
 app.use('/api/playground', playgroundRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Public legal pages (/privacy, /terms) — used for Play Store + RevenueCat paywall
 app.use('/', legalRoutes);
