@@ -109,7 +109,7 @@ router.get('/privacy', (_req: Request, res: Response) => {
 <p>This app is not directed at children under 13. We do not knowingly collect personal information from children under 13.</p>
 
 <h2>Contact</h2>
-<p>For privacy questions, email: <a href="mailto:privacy@vibecodeacademy.com">privacy@vibecodeacademy.com</a></p>
+<p>For privacy questions, email: <a href="mailto:rimolaofficial@gmail.com">rimolaofficial@gmail.com</a></p>
 
 <h2>Changes to This Policy</h2>
 <p>We may update this policy from time to time. Changes will be posted on this page with a new "Last updated" date.</p>
@@ -126,7 +126,7 @@ router.get('/delete-account', (_req: Request, res: Response) => {
 <p>This page explains how to request deletion of your <strong>VibeCode Academy</strong> account and the associated data we hold about you.</p>
 
 <h2>How to Request Account Deletion</h2>
-<p>To delete your account, send an email to <a href="mailto:privacy@vibecodeacademy.com?subject=Account%20Deletion%20Request">privacy@vibecodeacademy.com</a> from the email address associated with your VibeCode Academy account.</p>
+<p>To delete your account, send an email to <a href="mailto:rimolaofficial@gmail.com?subject=Account%20Deletion%20Request">rimolaofficial@gmail.com</a> from the email address associated with your VibeCode Academy account.</p>
 
 <p>In your email, please include:</p>
 <ul>
@@ -163,7 +163,7 @@ router.get('/delete-account', (_req: Request, res: Response) => {
 <p>Your RevenueCat customer record will be anonymized when you delete your account.</p>
 
 <h2>Questions</h2>
-<p>For questions about account deletion or data handling, contact us at <a href="mailto:privacy@vibecodeacademy.com">privacy@vibecodeacademy.com</a>.</p>
+<p>For questions about account deletion or data handling, contact us at <a href="mailto:rimolaofficial@gmail.com">rimolaofficial@gmail.com</a>.</p>
 
 <p>For more details on what we collect and how we use it, see our <a href="/privacy">Privacy Policy</a>.</p>
 `;
@@ -235,7 +235,7 @@ router.get('/terms', (_req: Request, res: Response) => {
 <p>We may update these Terms from time to time. Continued use of the App after changes constitutes acceptance of the updated Terms.</p>
 
 <h2>12. Contact</h2>
-<p>For questions about these Terms, email: <a href="mailto:legal@vibecodeacademy.com">legal@vibecodeacademy.com</a></p>
+<p>For questions about these Terms, email: <a href="mailto:rimolaofficial@gmail.com">rimolaofficial@gmail.com</a></p>
 `;
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(baseHtml('Terms of Service', body));
