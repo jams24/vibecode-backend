@@ -23,7 +23,8 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     if (existing) { res.status(409).json({ error: 'Email or username already taken' }); return; }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = await prisma.user.create({ data: { email, username, passwordHash } });
+    // No auto-trial on signup — trial starts only when user adds a card via Google Play / RevenueCat
+    const user = await prisma.user.create({ data: { email, username, passwordHash, trialStartDate: null, subscriptionStatus: 'none' } });
 
     // Unlock first lesson
     const firstModule = await prisma.module.findFirst({ orderBy: { order: 'asc' } });
@@ -35,7 +36,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     }
 
     const tokens = generateTokens(user.id);
-    res.status(201).json({ user: { id: user.id, email: user.email, username: user.username, level: user.level, xp: user.xp }, ...tokens });
+    res.status(201).json({ user: { id: user.id, email: user.email, username: user.username, level: user.level, xp: user.xp }, isNewUser: true, ...tokens });
   } catch (error) { console.error('Register error:', error); res.status(500).json({ error: 'Internal server error' }); }
 });
 
@@ -74,13 +75,16 @@ router.post('/google', async (req: Request, res: Response): Promise<void> => {
     }
 
     let user = await prisma.user.findUnique({ where: { email: googleUser.email } });
+    let isNewUser = false;
 
     if (user) {
       if (!user.googleId) await prisma.user.update({ where: { id: user.id }, data: { googleId: googleUser.sub, authProvider: 'google', avatarUrl: googleUser.picture } });
     } else {
+      isNewUser = true;
       const baseName = googleUser.name?.replace(/\s+/g, '').toLowerCase().slice(0, 20) || `user${Date.now()}`;
       const username = await prisma.user.findUnique({ where: { username: baseName } }) ? `${baseName}${Math.floor(Math.random() * 999)}` : baseName;
-      user = await prisma.user.create({ data: { email: googleUser.email, username, authProvider: 'google', googleId: googleUser.sub, avatarUrl: googleUser.picture, trialStartDate: new Date() } });
+      // No auto-trial on signup — trial starts only when user adds a card via Google Play / RevenueCat
+      user = await prisma.user.create({ data: { email: googleUser.email, username, authProvider: 'google', googleId: googleUser.sub, avatarUrl: googleUser.picture, trialStartDate: null, subscriptionStatus: 'none' } });
 
       const firstModule = await prisma.module.findFirst({ orderBy: { order: 'asc' } });
       if (firstModule) {
@@ -90,7 +94,7 @@ router.post('/google', async (req: Request, res: Response): Promise<void> => {
     }
 
     const tokens = generateTokens(user.id);
-    res.json({ user: { id: user.id, email: user.email, username: user.username, level: user.level, xp: user.xp, hearts: user.hearts, streak: user.streak, league: user.league, avatarUrl: user.avatarUrl, skillLevel: user.skillLevel }, ...tokens });
+    res.json({ user: { id: user.id, email: user.email, username: user.username, level: user.level, xp: user.xp, hearts: user.hearts, streak: user.streak, league: user.league, avatarUrl: user.avatarUrl, skillLevel: user.skillLevel }, isNewUser, ...tokens });
   } catch (error: any) {
     console.error('[google-auth] UNEXPECTED ERROR:', error?.name, error?.message, error?.stack, error?.code, error?.meta);
     res.status(500).json({ error: 'Internal server error', detail: error?.message });
@@ -109,6 +113,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     const tokens = generateTokens(user.id);
     res.json({
       user: { id: user.id, email: user.email, username: user.username, level: user.level, xp: user.xp, hearts: user.hearts, streak: user.streak, league: user.league, skillLevel: user.skillLevel },
+      isNewUser: false,
       ...tokens
     });
   } catch (error) { console.error('Login error:', error); res.status(500).json({ error: 'Internal server error' }); }
