@@ -40,7 +40,7 @@ const baseHtml = (title: string, body: string) => `<!DOCTYPE html>
 <body>
 ${body}
 <hr>
-<p class="footer">VibeCode Academy · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></p>
+<p class="footer">VibeCode Academy · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/delete-account">Delete Account</a></p>
 </body>
 </html>`;
 
@@ -116,6 +116,59 @@ router.get('/privacy', (_req: Request, res: Response) => {
 `;
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(baseHtml('Privacy Policy', body));
+});
+
+router.get('/delete-account', (_req: Request, res: Response) => {
+  const body = `
+<h1>Delete Your Account</h1>
+<p class="meta">Last updated: ${LAST_UPDATED}</p>
+
+<p>This page explains how to request deletion of your <strong>VibeCode Academy</strong> account and the associated data we hold about you.</p>
+
+<h2>How to Request Account Deletion</h2>
+<p>To delete your account, send an email to <a href="mailto:privacy@vibecodeacademy.com?subject=Account%20Deletion%20Request">privacy@vibecodeacademy.com</a> from the email address associated with your VibeCode Academy account.</p>
+
+<p>In your email, please include:</p>
+<ul>
+  <li>The email address used to register your account</li>
+  <li>Your VibeCode Academy username (if you remember it)</li>
+  <li>A short statement confirming you want your account and data deleted</li>
+</ul>
+
+<p>We will process deletion requests within <strong>30 days</strong> of receipt and send you a confirmation email once complete.</p>
+
+<h2>What Data Will Be Deleted</h2>
+<p>Upon deletion, the following will be permanently removed from our servers:</p>
+<ul>
+  <li>Your account (email, username, password hash, Google ID if used)</li>
+  <li>Your profile avatar URL</li>
+  <li>All lesson progress, quiz scores, and XP history</li>
+  <li>Streak data and daily goal preferences</li>
+  <li>Onboarding answers (experience level, build goals)</li>
+  <li>Your entry on leaderboards</li>
+  <li>Any badges, achievements, and user-generated project submissions</li>
+</ul>
+
+<h2>What Data May Be Retained</h2>
+<p>Some data may be retained for legitimate business, legal, or financial reasons:</p>
+<ul>
+  <li><strong>Subscription and payment records</strong> — retained for up to 7 years as required by tax and accounting regulations. These are held by Google Play and RevenueCat, not directly by us.</li>
+  <li><strong>Aggregated, anonymized analytics</strong> — cannot be linked back to you and may be retained indefinitely.</li>
+  <li><strong>Security and fraud prevention logs</strong> — retained for up to 90 days.</li>
+</ul>
+
+<h2>Third-Party Data</h2>
+<p>Deleting your VibeCode Academy account does <strong>not</strong> automatically cancel active Google Play subscriptions. To cancel subscriptions, visit <a href="https://play.google.com/store/account/subscriptions" target="_blank">Google Play Subscriptions</a>.</p>
+
+<p>Your RevenueCat customer record will be anonymized when you delete your account.</p>
+
+<h2>Questions</h2>
+<p>For questions about account deletion or data handling, contact us at <a href="mailto:privacy@vibecodeacademy.com">privacy@vibecodeacademy.com</a>.</p>
+
+<p>For more details on what we collect and how we use it, see our <a href="/privacy">Privacy Policy</a>.</p>
+`;
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(baseHtml('Delete Account', body));
 });
 
 router.get('/terms', (_req: Request, res: Response) => {
