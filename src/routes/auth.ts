@@ -45,10 +45,33 @@ router.post('/google', async (req: Request, res: Response): Promise<void> => {
     const { idToken } = req.body;
     if (!idToken) { res.status(400).json({ error: 'ID token required' }); return; }
 
-    const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
-    if (!googleRes.ok) { res.status(401).json({ error: 'Invalid Google token' }); return; }
-    const googleUser = await googleRes.json() as { sub: string; email: string; name: string; picture: string };
+    if (typeof fetch !== 'function') {
+      console.error('[google-auth] fetch is not available — Node.js 18+ required');
+      res.status(500).json({ error: 'Server misconfiguration: Node.js 18+ required' });
+      return;
+    }
+
+    let googleUser: { sub: string; email: string; name: string; picture: string };
+    try {
+      const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
+      if (!googleRes.ok) {
+        console.error('[google-auth] tokeninfo rejected token:', googleRes.status, await googleRes.text().catch(() => ''));
+        res.status(401).json({ error: 'Invalid Google token' });
+        return;
+      }
+      googleUser = await googleRes.json() as { sub: string; email: string; name: string; picture: string };
+    } catch (fetchErr: any) {
+      console.error('[google-auth] fetch to Google tokeninfo failed:', fetchErr?.message || fetchErr);
+      res.status(502).json({ error: 'Failed to verify Google token' });
+      return;
+    }
+
     if (!googleUser.email) { res.status(400).json({ error: 'No email in Google token' }); return; }
+    if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+      console.error('[google-auth] JWT_SECRET or JWT_REFRESH_SECRET is not set');
+      res.status(500).json({ error: 'Server misconfiguration: JWT secrets missing' });
+      return;
+    }
 
     let user = await prisma.user.findUnique({ where: { email: googleUser.email } });
 
@@ -68,7 +91,10 @@ router.post('/google', async (req: Request, res: Response): Promise<void> => {
 
     const tokens = generateTokens(user.id);
     res.json({ user: { id: user.id, email: user.email, username: user.username, level: user.level, xp: user.xp, hearts: user.hearts, streak: user.streak, league: user.league, avatarUrl: user.avatarUrl, skillLevel: user.skillLevel }, ...tokens });
-  } catch (error) { console.error('Google auth error:', error); res.status(500).json({ error: 'Internal server error' }); }
+  } catch (error: any) {
+    console.error('[google-auth] UNEXPECTED ERROR:', error?.name, error?.message, error?.stack, error?.code, error?.meta);
+    res.status(500).json({ error: 'Internal server error', detail: error?.message });
+  }
 });
 
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
